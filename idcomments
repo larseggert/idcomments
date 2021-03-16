@@ -1,0 +1,109 @@
+#!/bin/bash
+#
+#  Extract comments from an internet-draft with interspersed review comments.
+#
+
+version="0.18"
+program=${0##*/}
+progdir=${0%/*}
+
+# ----------------------------------------------------------------------
+function usage() {
+    cat <<-EOF
+	Usage:  $program [OPTIONS]... REVIEW
+
+	Extract comments from an internet-draft with interspersed review
+	comments.  Comments have to follow the text to which they apply
+	without intervening blank lines.  The first comment line has to
+	start with a comment tag, and following comment lines has to be
+	tab-indented.  A comment ends with the first blank line.  The
+	comment tag is by default "COMMENT:", but the tag word is
+	configurable with the -t switch. 
+EOF
+    echo -e "\nOptions:"
+    if   [ "$(uname)" = "Linux" ]; then
+        egrep "^[	]+[-][A-Za-z| -]+\*?\)[	]+[A-Za-z].+#" $0 | tr -s "\t|" "\t," | sed 's/)[^#]*#/	/'
+    else
+        egrep "^[	]+[-][A-Za-z| -]+\*?\)[	]+[A-Za-z].+#" $0 | sed -E 's/\|.*\)[^#]*#/	/'
+    fi
+    echo ""
+}
+
+# ----------------------------------------------------------------------
+function die() {
+    echo -e "\n$program: error: $*" > /dev/stderr
+    exit 1
+}
+
+# ----------------------------------------------------------------------
+function version() {
+	echo -e "$program:	$version"
+}
+
+# ----------------------------------------------------------------------
+# Option parsing
+
+# Options
+shortopts=ht:V
+longopts=nodraft,help,tag:,version
+
+# Default values
+OPT_TAGSTR="COMMENT"
+
+uname="$(uname)"
+
+if   [ "$uname" = "Linux" ]; then
+    args=$(getopt -o "$shortopts" --long "$longopts" -n '$program' -- $SV "$@")
+    if [ $? != 0 ] ; then die "Terminating..." >&2 ; exit 1 ; fi
+    eval set -- "$args"
+    sed="sed -r"
+else
+    # Darwin, BSDs
+    args=$(getopt -o$shortopts $*)
+    if [ $? != 0 ] ; then die "Terminating..." >&2 ; exit 1 ; fi
+    set -- $args
+    sed="sed -E"	
+fi
+
+while true ; do
+    case "$1" in
+	-h| --help)	usage; exit;;		# Show this help, then exit
+	-t| --tag)	OPT_TAGSTR=$2; shift;;	# Use the provided tag string instead of 'COMMENT'
+#	-v| --verbose)	OPT_VERBOSE=1;;		# Be more talkative
+	-V| --version)	version; exit;;		# Show program version, then exit
+	--)		shift; break;;
+	*) die "Internal error, inconsistent option specification: '$1'";;
+    esac
+    shift
+done
+
+if [ ! "$1" ]; then
+    echo -e "$program: Missing filename.\n"
+    usage;
+    exit;
+fi
+
+# ----------------------------------------------------------------------
+
+review=$1
+tempfile=$(tempfile)
+
+$sed -e "/^$OPT_TAGSTR:/i\\
+"  -e "/^$OPT_TAGSTR:/,/^[ \\	\\]*\$/c\\
+\\
+" $review > $tempfile
+
+if [ "$uname" = "Linux" ]; then
+    rfcdiff --abdiff $tempfile $review | $sed -e '/^OLD:/,/^NEW:/d' -e 's/^  />  /' -e "s/ $OPT_TAGSTR: /\\
+  /" -e 's/	\.$/	/' -e 's/^ 	/  /' | fmt -u -p "  " -w 72
+else
+    rfcdiff --abdiff $tempfile $review | $sed -e '/^OLD:/,/^NEW:/d' -e 's/^  /.  /' -e "s/ $OPT_TAGSTR: /\\
+  /" -e 's/	\.$/	/' -e 's/^ 	/  /'  | fmt -p -w 72 | sed 's/^\. /> /'
+fi
+
+if [ $? != 0 ]; then
+    echo "Error generating comments"
+fi
+
+rm $tempfile
+

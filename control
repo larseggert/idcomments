@@ -1,0 +1,9 @@
+Source: idcomments
+Version: 0.18
+Section: text
+Priority: optional
+Maintainer: Henrik Levkowetz <henrik@levkowetz.com>
+Package: idcomments
+Architecture: any
+Depends: 
+Description: 

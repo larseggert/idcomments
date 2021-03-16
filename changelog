@@ -1,0 +1,82 @@
+idcomments (0.18)
+
+  * Changed the comment-stripping sed expression to insert a blank line
+    after stripping out a comment, to avoid running together consecutive
+    paragraphs.
+
+ -- Henrik Levkowetz <henrik@levkowetz.com>  30 Jun 2006 14:42:23 +0200
+
+idcomments (0.17)
+
+  * Fmt needs different switches under Darwin than under Unix, and
+    also needs a different approach to selectively format only the
+    comments, not the quoted draft text.  Fixed.
+
+ -- Henrik Levkowetz <henrik@levkowetz.com>  23 Jun 2006 17:32:02
+
+idcomments (0.16)
+
+  * Added the use of fmt to re-format comments to 72 characters width.
+
+  * Changed the indentation of comments to zero.
+
+ -- Henrik Levkowetz <henrik@levkowetz.com>  22 Jun 2006 17:03:16 +0200
+
+idcomments (0.15)
+
+  * sed under Darwin can't handle '\r' and '\t' in the regexp patterns, it
+    seems.  Substituted literal tab and cr instead.  This feels fragile.
+
+ -- Henrik Levkowetz  12 May 2006 17:16:54 +0200
+
+idcomments (0.14)
+
+  * Given an input file with \r\n line endings, the sed regexp to remove comments
+    to re-create the commentless draft would fail.  Fixed.
+
+ -- Henrik Levkowetz <henrik@levkowetz.com>  10 May 2006 15:02:20 +0200
+
+idcomments (0.13)
+
+  * Changed default operation to expect only the review file, and generate the
+    diff base by removing comments.  Removed code which handled the old operating
+    mode which required one 'review-' file and one 'draft-' file.
+
+  * Added error message and usage output when no filename is given.
+
+  * Refined the usage message to not show the long options when run under Darwin,
+    where getopt doesn't support long options.
+
+  * Removed verbose option which didn't do anything
+
+ -- Henrik Levkowetz <henrik@levkowetz.com>  10 May 2006 15:02:20 +0200
+
+idcomments (0.12)
+
+  * Fixed problem with argument parsing under Darwing : getopt's -o switch need
+    the options immediately following the -o, without intervening space
+  * Fixed difference between linux and Darwin sed: -r switch versus -E for extended
+    regular expressions.
+  * Added a missing '$' in the test for the --nodraft option.
+  * Removed the use of a temporary file for the reviewed document
+  * Fixed sed replacement patterns containing escape character codes to work under
+    Darwin by replacing them with the actual characters.
+
+ -- Henrik Levkowetz <henrik@levkowetz.com>  09 May 2006 17:16:06 +0200
+
+idcomments (0.11)
+
+  * Added version information
+  * Added usage information
+  * Added option parsing, and options --help --version --tag --nodraft
+  * Added code to regenerate draft file from review file, to avoid
+    the need to have both draft file and review file present
+
+ -- Henrik Levkowetz <henrik@levkowetz.com>  2006-05-06 15:03:43 CEST
+
+idcomments (0.10)
+
+  * Project created
+
+ -- Henrik Levkowetz <henrik@levkowetz.com>  2006-05-06 15:03:43 CEST
+
